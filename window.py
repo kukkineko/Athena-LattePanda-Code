@@ -3,6 +3,7 @@ from PyQt6 import QtWidgets, QtCore, QtGui
 from tagoffenetur import Ui_MainWindow
 import comms
 
+
 class GUIMain:
     def __init__(self):
         self.app = QtWidgets.QApplication(sys.argv)

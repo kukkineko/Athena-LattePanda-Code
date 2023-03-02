@@ -2,6 +2,7 @@ import math
 from PyQt6 import QtCore, QtGui, QtWidgets
 
 
+
 class ColorWheel(QtWidgets.QWidget):
     colorChanged = QtCore.pyqtSignal(QtGui.QColor)
 

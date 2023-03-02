@@ -2,6 +2,7 @@ import ydlidar
 import time
 import math
 
+
 # Initialize the ydlidar module and connect to the laser rangefinder
 # device via the serial port at /COM4.
 

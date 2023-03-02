@@ -1,6 +1,7 @@
 import serial
 import time
 
+
 class ESP32:
     def __init__(self):
         self.ser = serial.Serial('/dev/ttyACM0', 115200, timeout=1)

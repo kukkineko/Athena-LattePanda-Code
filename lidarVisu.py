@@ -5,6 +5,7 @@ import numpy as np
 import signal
 import util
 
+
 class lidarVisu():
     def handler(signum, frame):
         del lid

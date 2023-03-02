@@ -2,6 +2,7 @@ import glob
 import matplotlib.pyplot as plt
 import os
 
+
 def create_image(x, y):
     # Create a new figure
     plt.figure()
