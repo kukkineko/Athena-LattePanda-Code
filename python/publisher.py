@@ -6,11 +6,10 @@ from lidar import Lidar  # Import the Lidar class from your 'lidar.py' module
 class LaserScanPublisher(Node):
     def __init__(self, topic='scan'):
         super().__init__('laser_scan_publisher')
-        self.publisher = self.create_publisher(LaserScan, topic, 10)
+        self.publisher = self.create_publisher(LaserScan, topic, 15)
         self.timer = None
         self.is_running = False
         self.lidar = Lidar()  # Initialize the Lidar instance
-        self.last_scan_time = None  # Keep track of the timestamp of the last published scan
 
     def start(self, interval=1.0):
         if self.is_running:
@@ -27,11 +26,8 @@ class LaserScanPublisher(Node):
     def publish_laser_scan(self):
         laser_scan_msg = self.gen_laser_scan_msg()
         if laser_scan_msg is not None:
-            # Check if the timestamp of the new scan is different from the previous one
-            if self.last_scan_time != laser_scan_msg.header.stamp:
-                self.get_logger().info(f'Publishing LaserScan at {laser_scan_msg.header.stamp.sec}')
-                self.publisher.publish(laser_scan_msg)
-                self.last_scan_time = laser_scan_msg.header.stamp
+            self.get_logger().info(f'Publishing LaserScan at {laser_scan_msg.header.stamp.sec}')
+            self.publisher.publish(laser_scan_msg)
 
     def gen_laser_scan_msg(self):
         scan = self.lidar.scan()
