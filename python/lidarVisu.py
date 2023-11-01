@@ -44,7 +44,9 @@ class LidarVisu:
             pygame.draw.line(self.screen, self.grid_color, (0, y_pos), (800, y_pos), self.grid_thickness)
 
     def update(self):
-        x, y = self.lidar.getGrid()
+        lidar.scan()
+        x = lidar.ranges_list * np.cos(lidar.angles_list)
+        y = lidar.ranges_list * np.sin(lidar.angles_list)
         data = np.column_stack((x, y)).astype(float)
 
         self.screen.fill((255, 255, 255))
