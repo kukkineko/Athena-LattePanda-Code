@@ -45,8 +45,8 @@ class LidarVisu:
 
     def update(self):
         self.lidar.scan()
-        x = self.lidar.ranges_list * np.cos(self.lidar.angles_list)
-        y = self.lidar.ranges_list * np.sin(self.lidar.angles_list)
+        x = self.lidar.ranges_list * np.cos(self.lidar.angle_list)
+        y = self.lidar.ranges_list * np.sin(self.lidar.angle_list)
 
         data = np.column_stack((x, y)).astype(float)
 
