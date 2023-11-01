@@ -34,7 +34,7 @@ class LaserScanPublisher(Node):
         if scan:
             laser_scan_msg = LaserScan()
             laser_scan_msg.header.stamp = self.get_clock().now().to_msg()
-            laser_scan_msg.header.frame_id = 'laser_frame'
+            laser_scan_msg.header.frame_id = 'scan'
             laser_scan_msg.angle_min = self.lidar.angle_min
             laser_scan_msg.angle_max = self.lidar.angle_max
             laser_scan_msg.angle_increment = self.lidar.angle_increment
