@@ -1,3 +1,4 @@
+from asyncio import SafeChildWatcher
 import ydlidar
 import time
 import math
@@ -76,18 +77,15 @@ class Lidar():
                 self.angle_max = scan.config.max_angle
                 self.angle_increment = scan.config.angle_increment
                 self.range = scan.points[n].range
+                print(self.range)
                 self.range_min = scan.config.min_range
                 self.range_max = scan.config.max_range
                 self.intensity = scan.points[n].intensity
                 self.time_increment = scan.config.time_increment
                 self.scan_time = scan.config.scan_time
-                self.scan_frequency = scan.config.scan_frequency
                 self.grid = scan.points
                 self.grid_size = scan.points.size()
                 self.grid_time = scan.stamp
-                self.grid_health = scan.health
-                self.grid_descriptor = scan.descriptor
-                self.grid_type = scan.type
                 self.grid_size = scan.points.size()
 
             return True    #return True if scan is successful
