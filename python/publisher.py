@@ -6,7 +6,7 @@ from lidar import Lidar  # Import the Lidar class from your 'lidar.py' module
 class LaserScanPublisher(Node):
     def __init__(self, topic='scan'):
         super().__init__('laser_scan_publisher')
-        self.publisher = self.create_publisher(LaserScan, topic, 15)
+        self.publisher = self.create_publisher(LaserScan, topic, 60)
         self.timer = None
         self.is_running = False
         self.lidar = Lidar()  # Initialize the Lidar instance
