@@ -32,7 +32,7 @@ class LaserScanPublisher(Node):
         scan = self.lidar.scan()
         if scan:
             # Verify that 'ranges' is a list of floats within the expected range
-            ranges = [float(range_val) for range_val in self.lidar.grid if self.lidar.range_min <= range_val <= self.lidar.range_max]
+            ranges = [float(range_val) for range_val in self.lidar.grid]
         
             laser_scan_msg = LaserScan()
             laser_scan_msg.header.stamp = self.get_clock().now().to_msg()
