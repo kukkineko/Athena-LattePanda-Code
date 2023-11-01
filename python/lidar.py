@@ -40,7 +40,6 @@ class Lidar:
         if self.laser.doProcessSimple(scan):
             self.ranges_list = []  # Clear the ranges list
             self.intensities_list = []  # Clear the intensities list
-            self.angle = scan.points[n].angle
             self.angle_min = scan.config.min_angle
             self.angle_max = scan.config.max_angle
             self.angle_increment = scan.config.angle_increment
@@ -54,10 +53,12 @@ class Lidar:
             self.grid_size = scan.points.size()
 
             for n in range(0, len(scan.points)):
+                self.angle = scan.points[n].angle
                 self.range = scan.points[n].range
                 self.intensity = scan.points[n].intensity
          
                 # Append the range and intensity to the respective lists
+                self.angle_list.append(self.angle)
                 self.ranges_list.append(self.range)
                 self.intensities_list.append(self.intensity)
 
