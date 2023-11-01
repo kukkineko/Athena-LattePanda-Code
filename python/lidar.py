@@ -53,7 +53,7 @@ class Lidar:
             self.grid_time = scan.stamp
             self.grid_size = scan.points.size()
 
-            for n in range(0, len(scan.points):
+            for n in range(0, len(scan.points)):
                 self.range = scan.points[n].range
                 self.intensity = scan.points[n].intensity
          
