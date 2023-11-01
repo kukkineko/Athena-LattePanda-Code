@@ -74,7 +74,7 @@ class Lidar():
                 self.angle = scan.points[n].angle
                 self.angle_min = scan.config.min_angle
                 self.angle_max = scan.config.max_angle
-                self.angle_increment = scan.config.ang_increment
+                self.angle_increment = scan.config.angle_increment
                 self.range = scan.points[n].range
                 self.range_min = scan.config.min_range
                 self.range_max = scan.config.max_range
