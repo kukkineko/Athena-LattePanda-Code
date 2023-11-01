@@ -34,9 +34,12 @@ class Lidar():
             except ValueError as e:
                 print(e)
 
+    def __del__(self):
+        self.turnOff()
+        print("Lidar turned off")
         
 
-    def getGrid(self):
+    def getGrid(self): #"legacy" command, do not use anymore
         ls_pts_x = []
         ls_pts_y = []
 
@@ -61,61 +64,43 @@ class Lidar():
         else:
             print("Failed to get Lidar Data")
             return [0], [0]
-
-    def getAngleDist(self):
-        ls_angle = []
-        ls_range = []
-        ls_intensity = []
-        ls_scan_time = []
-        ls_time_increment = []
-        ls_angle_min = []
-        ls_angle_max = []
-        ls_angle_increment = []
-        ls_range_min = []
-        ls_range_max = []
-
-        # Create a LaserScan object to hold the scan data.
+        
+    def scan(self):
         scan = ydlidar.LaserScan()
 
-        # Attempt to get a scan from the device.
+        #try to scan
         if self.laser.doProcessSimple(scan):
-            # Print the number of points in the scan and the scan frequency.
-            #print(f"Scan received[{scan.stamp}]: {scan.points.size()} ranges is [{1.0 / scan.config.scan_time}]Hz")
-            #send lidar info
             for n in range(0, len(scan.points)):
-                #get lidar info
-                angle = scan.points[n].angle
-                range = scan.points[n].range
-                intensity = scan.points[n].intensity
-                scan_time = scan.config.scan_time
-                time_increment = scan.config.time_increment
-                angle_min = scan.config.min_angle
-                angle_max = scan.config.max_angle
-                angle_increment = scan.config.angle_increment
-                range_min = scan.config.min_range
-                range_max = scan.config.max_range
+                self.angle = scan.points[n].angle
+                self.angle_min = scan.config.min_angle
+                self.angle_max = scan.config.max_angle
+                self.angle_increment = scan.config.ang_increment
+                self.range = scan.points[n].range
+                self.range_min = scan.config.min_range
+                self.range_max = scan.config.max_range
+                self.intensity = scan.points[n].intensity
+                self.time_increment = scan.config.time_increment
+                self.scan_time = scan.config.scan_time
+                self.scan_frequency = scan.config.scan_frequency
+                self.grid = scan.points
+                self.grid_size = scan.points.size()
+                self.grid_time = scan.stamp
+                self.grid_health = scan.health
+                self.grid_descriptor = scan.descriptor
+                self.grid_type = scan.type
+                self.grid_size = scan.points.size()
 
-                #append to list
-                ls_angle.append(angle)
-                ls_range.append(range)
-                ls_intensity.append(intensity)
-            #print(ls_pts)
-
-            return ls_angle, ls_range, ls_intensity, scan_time, time_increment, angle_min, angle_max, angle_increment, range_min, range_max
-
+            return True    #return True if scan is successful
         else:
-            print("Failed to get Lidar Data")
-            return [0], [0]
-        
-        
+            return False    #return False if scan is unsuccessful
+
+
     def turnOff(self):
         # Turn off the device.
         self.laser.turnOff()
         self.laser.disconnecting()
 
-    def __del__(self):
-        self.turnOff()
-        print("Lidar turned off")
+
 
     
 

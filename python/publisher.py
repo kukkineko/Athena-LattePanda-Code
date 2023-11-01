@@ -29,22 +29,24 @@ class LaserScanPublisher(Node):
         self.publisher.publish(msg)
 
     def gen_laser_scan_msg(self):
-        ls_angle, ls_range, ls_intensity, scan_time, time_increment, angle_min, angle_max, angle_increment, range_min, range_max = self.lidar.getAngleDist()
-
+        scan = self.lidar.scan()
+        if scan != True:
+            #scan unsuccessful, can't generate laser scan message.
+            return None
+           
         laser_scan_msg = LaserScan()
-        laser_scan_msg.header.frame_id = 'laser_frame'
         laser_scan_msg.header.stamp = self.get_clock().now().to_msg()
-        sample_count = len(ls_range)
+        laser_scan_msg.header.frame_id = 'laser_frame'
+        laser_scan_msg.angle_min = self.lidar.angle_min
+        laser_scan_msg.angle_max = self.lidar.angle_max
+        laser_scan_msg.angle_increment = self.lidar.angle_increment
+        laser_scan_msg.time_increment = self.lidar.time_increment
+        laser_scan_msg.scan_time = self.lidar.scan_time
+        laser_scan_msg.range_min = self.lidar.range_min
+        laser_scan_msg.range_max = self.lidar.range_max
+        laser_scan_msg.ranges = self.lidar.grid
+        laser_scan_msg.intensities = self.lidar.intensity
 
-        laser_scan_msg.angle_min = angle_min
-        laser_scan_msg.angle_max = angle_max
-        laser_scan_msg.angle_increment = angle_increment
-        laser_scan_msg.time_increment = time_increment
-        laser_scan_msg.scan_time = scan_time
-        laser_scan_msg.range_min = range_min
-        laser_scan_msg.range_max = range_max
-        laser_scan_msg.ranges = ls_range
-        laser_scan_msg.intensities = ls_intensity
 
         return laser_scan_msg
 
