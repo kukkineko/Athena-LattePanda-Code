@@ -24,16 +24,14 @@ class LaserScanPublisher(Node):
             self.is_running = False
 
     def publish_laser_scan(self):
-        msg = self.gen_laser_scan_msg()
-        self.get_logger().info(f'Publish msg at {msg.header.stamp.sec}')
-        self.publisher.publish(msg)
+        laser_scan_msg = self.gen_laser_scan_msg()
+        if laser_scan_msg is not None:
+            self.get_logger().info(f'Publishing LaserScan at {laser_scan_msg.header.stamp.sec}')
+            self.publisher.publish(laser_scan_msg)
 
     def gen_laser_scan_msg(self):
         scan = self.lidar.scan()
         if scan:
-            # Verify that 'ranges' is a list of floats within the expected range
-            ranges = [float(range_val) for range_val in self.lidar.range]
-        
             laser_scan_msg = LaserScan()
             laser_scan_msg.header.stamp = self.get_clock().now().to_msg()
             laser_scan_msg.header.frame_id = 'laser_frame'
@@ -44,8 +42,11 @@ class LaserScanPublisher(Node):
             laser_scan_msg.scan_time = self.lidar.scan_time
             laser_scan_msg.range_min = self.lidar.range_min
             laser_scan_msg.range_max = self.lidar.range_max
-            laser_scan_msg.ranges = ranges  # Assign the 'ranges' list
-        
+
+            # Use the updated ranges and intensities from Lidar instance
+            laser_scan_msg.ranges = self.lidar.ranges_list
+            laser_scan_msg.intensities = self.lidar.intensities_list
+
             return laser_scan_msg
         else:
             return None
