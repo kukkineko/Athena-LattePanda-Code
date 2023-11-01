@@ -38,8 +38,9 @@ class Lidar:
 
         # Try to scan
         if self.laser.doProcessSimple(scan):
-            self.ranges_list = []  # Clear the ranges list
+            self.ranges_list = []       # Clear the ranges list
             self.intensities_list = []  # Clear the intensities list
+            self.angle_list = []        # Clear the angle list
             self.angle_min = scan.config.min_angle
             self.angle_max = scan.config.max_angle
             self.angle_increment = scan.config.angle_increment
