@@ -30,25 +30,25 @@ class LaserScanPublisher(Node):
 
     def gen_laser_scan_msg(self):
         scan = self.lidar.scan()
-        if scan != True:
-            #scan unsuccessful, can't generate laser scan message.
+        if scan:
+            # Verify that 'ranges' is a list of floats within the expected range
+            ranges = [float(range_val) for range_val in self.lidar.grid if self.lidar.range_min <= range_val <= self.lidar.range_max]
+        
+            laser_scan_msg = LaserScan()
+            laser_scan_msg.header.stamp = self.get_clock().now().to_msg()
+            laser_scan_msg.header.frame_id = 'laser_frame'
+            laser_scan_msg.angle_min = self.lidar.angle_min
+            laser_scan_msg.angle_max = self.lidar.angle_max
+            laser_scan_msg.angle_increment = self.lidar.angle_increment
+            laser_scan_msg.time_increment = self.lidar.time_increment
+            laser_scan_msg.scan_time = self.lidar.scan_time
+            laser_scan_msg.range_min = self.lidar.range_min
+            laser_scan_msg.range_max = self.lidar.range_max
+            laser_scan_msg.ranges = ranges  # Assign the 'ranges' list
+        
+            return laser_scan_msg
+        else:
             return None
-           
-        laser_scan_msg = LaserScan()
-        laser_scan_msg.header.stamp = self.get_clock().now().to_msg()
-        laser_scan_msg.header.frame_id = 'laser_frame'
-        laser_scan_msg.angle_min = self.lidar.angle_min
-        laser_scan_msg.angle_max = self.lidar.angle_max
-        laser_scan_msg.angle_increment = self.lidar.angle_increment
-        laser_scan_msg.time_increment = self.lidar.time_increment
-        laser_scan_msg.scan_time = self.lidar.scan_time
-        laser_scan_msg.range_min = self.lidar.range_min
-        laser_scan_msg.range_max = self.lidar.range_max
-        laser_scan_msg.ranges = self.lidar.grid
-        laser_scan_msg.intensities = self.lidar.intensity
-
-
-        return laser_scan_msg
 
 def main(args=None):
     rclpy.init(args=args)
