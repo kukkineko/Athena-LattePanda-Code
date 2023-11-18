@@ -1,55 +1,52 @@
-import os
-import requests
-import json
+# client.py
+
 import subprocess
-import time
+import json
+import sys
+import rclnodejs
+import atexit
 
-class TypeScriptServer:
+class TypeScriptServerClient:
     def __init__(self):
-        # Get the absolute path to the directory of the current script
-        script_dir = os.path.dirname(os.path.abspath(__file__))
+        # Start TypeScript server
+        self.ts_server_process = subprocess.Popen(
+            ["node", "../nodejs/typescriptServer.js"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
 
-        # Build the path to the Node.js script
-        node_script_path = os.path.join(script_dir, '..', 'nodejs', 'main.js')
+        # Wait for the server to start (you might want to add better handling)
+        while True:
+            line = self.ts_server_process.stdout.readline().strip()
+            if line == 'TypeScript server is listening on port 3000':
+                break
 
-        # Start the server
-        self.start_server(node_script_path)
+    def send_data(self, topic, data):
+        # Send data to TypeScript server
+        message = {"topic": topic, "data": data}
+        message_str = json.dumps(message)
+        self.ts_server_process.stdin.write(message_str + '\n')
+        self.ts_server_process.stdin.flush()
 
-    def start_server(self, node_script_path):
-        self.server_process = subprocess.Popen(["node", node_script_path])
-        time.sleep(2)  # Give the server some time to start
+    def close(self):
+        # Close TypeScript server
+        self.ts_server_process.terminate()
+        self.ts_server_process.wait()
 
-    def stop_server(self):
-        requests.get("http://localhost:3000/shutdown")
-        self.server_process.wait()  # Wait for the server process to complete
+# Ensure the TypeScript server is closed when the Python script exits
+def cleanup():
+    ts_client.close()
 
-    def send_data(self, message_type, data):
-        payload = {"type": message_type, "data": data}
-        url = "http://localhost:3000/processData"
-        response = requests.post(url, json=payload)
-        result = response.json()
-        return result["result"]
+atexit.register(cleanup)
 
-    def __del__(self):
-        self.stop_server()
+if __name__ == '__main__':
+    ts_client = TypeScriptServerClient()
 
-# Example usage:
-if __name__ == "__main__":
-    # Create an instance of TypeScriptServer
-    ts_server = TypeScriptServer()
+    # Your existing code or any additional logic can go here
 
-    try:
-        # Example Lidar and IMU data
-        lidar_data = [1.2, 2.3, 3.4, 4.5]
-        imu_data = [0.1, 0.2, 0.3]
+    # Example: sending data
+    ts_client.send_data('imu', {'some': 'data'})
 
-        # Send Lidar data with message type "lidar"
-        lidar_result = ts_server.send_data("lidar", lidar_data)
-        print("Received result for Lidar data:", lidar_result)
-
-        # Send IMU data with message type "imu"
-        imu_result = ts_server.send_data("imu", imu_data)
-        print("Received result for IMU data:", imu_result)
-    finally:
-        # The server will be stopped when the instance is destroyed
-        del ts_server
+    # Close TypeScript server when the script exits
+    ts_client.close()
