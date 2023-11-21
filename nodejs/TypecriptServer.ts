@@ -1,6 +1,7 @@
 import * as rclnodejs from 'rclnodejs';
-import { LaserScan } from 'sensor_msgs/msg/LaserScan';
-import { Imu } from 'sensor_msgs/msg/Imu';
+import { LaserScan } from 'rosidl-typescript-msgs/sensor_msgs/msg/LaserScan';
+import { Imu } from 'rosidl-typescript-msgs/sensor_msgs/msg/Imu';
+
 
 // Create a ROS 2 node
 rclnodejs.init().then(() => {
@@ -66,9 +67,13 @@ rclnodejs.init().then(() => {
     const subscription = node.createSubscription(
         'python_data_topic',
         'std_msgs/msg/String',
-        (msg: rclnodejs.Message) => {
-            if (msg instanceof rclnodejs.Message) {
-                // Handle specific message types (e.g., LaserScan, Imu)
+        (msg: rclnodejs.Message | string) => {
+            if (msg instanceof LaserScan) {
+                // Handle LaserScan message
+                const data = JSON.parse((msg as any).data);
+                handleData(data.topic, data.data);
+            } else if (msg instanceof Imu) {
+                // Handle Imu message
                 const data = JSON.parse((msg as any).data);
                 handleData(data.topic, data.data);
             } else if (typeof msg === 'string') {
