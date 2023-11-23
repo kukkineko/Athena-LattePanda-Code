@@ -1,8 +1,11 @@
 {
   "ExpandedNodes": [
     "",
-    "\\python"
+    "\\nodejs",
+    "\\python",
+    "\\python\\__pycache__",
+    "\\testing"
   ],
-  "SelectedNode": "\\python\\lidar.py",
+  "SelectedNode": "\\nodejs\\typecriptServer.ts",
   "PreviewInSolutionExplorer": false
 }
