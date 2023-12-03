@@ -1,6 +1,4 @@
 import * as rclnodejs from 'rclnodejs';
-import { LaserScan } from 'rosidl-typescript-msgs/sensor_msgs/msg/LaserScan';
-import { Imu } from 'rosidl-typescript-msgs/sensor_msgs/msg/Imu';
 
 
 // Create a ROS 2 node
@@ -8,8 +6,8 @@ rclnodejs.init().then(() => {
     const node = rclnodejs.createNode('typescript_server_node');
 
     // Create publishers for lidar and imu topics
-    const lidarPublisher = node.createPublisher(LaserScan, 'lidar_topic');
-    const imuPublisher = node.createPublisher(Imu, 'imu_topic');
+    const lidarPublisher = node.createPublisher('sensor_msgs/msg/LaserScan', 'lidar_topic');
+    const imuPublisher = node.createPublisher('sensor_msgs/msg/Imu', 'imu_topic');
 
     // Function to handle received data and publish to ROS 2
     function handleData(topic: string, data: any) {
