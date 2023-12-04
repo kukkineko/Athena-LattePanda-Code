@@ -1,16 +1,22 @@
-from client import TypeScriptServerClient
 from lidar import Lidar
 from IMU import IMU
+import socket
+import json
 
-class LaserScanPublisher:
-    def __init__(self, ts_client):
+class SensorPublisher:
+    def __init__(self, host, port):
         self.lidar = Lidar()
-        self.ts_client = ts_client
+        self.imu = IMU()
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server_address = (host, port)
+        self.socket.connect(self.server_address)
 
-    def publish_laser_scan(self):
-        laser_scan_msg = self.gen_laser_scan_msg()
-        if laser_scan_msg is not None:
-            self.ts_client.send_data("lidar", laser_scan_msg)
+    def send_data(self, data):
+        try:
+            message = json.dumps(data).encode()
+            self.socket.sendall(message)
+        except Exception as e:
+            print(f"Error sending data: {e}")
 
     def gen_laser_scan_msg(self):
         scan = self.lidar.scan()
@@ -33,21 +39,12 @@ class LaserScanPublisher:
                 "ranges": self.lidar.ranges_list,
                 "intensities": self.lidar.intensities_list,
             }
-
             return laser_scan_msg
         else:
             return None
 
-class ImuPublisher:
-    def __init__(self, ts_client):
-        self.imu = IMU()
-        self.ts_client = ts_client
-
-    def publish_imu(self):
+    def gen_imu_msg(self):
         self.imu.read()
-        ax, ay, az = float(self.imu.ax), float(self.imu.ay), float(self.imu.az)
-        gx, gy, gz = float(self.imu.gx), float(self.imu.gy), float(self.imu.gz)
-
         imu_msg = {
             "header": {
                 "stamp": {
@@ -57,41 +54,43 @@ class ImuPublisher:
                 "frame_id": 'imu',
             },
             "orientation": {"x": -1.0, "y": -1.0, "z": -1.0, "w": -1.0},
-            "angular_velocity": {"x": gx, "y": gy, "z": gz},
-            "linear_acceleration": {"x": ax, "y": ay, "z": az},
+            "angular_velocity": {"x": float(self.imu.gx), "y": float(self.imu.gy), "z": float(self.imu.gz)},
+            "linear_acceleration": {"x": float(self.imu.ax), "y": float(self.imu.ay), "z": float(self.imu.az)},
         }
+        return imu_msg
 
-        self.ts_client.send_data("imu", imu_msg)
-
-def lidar_publisher_process():
-    ts_client = TypeScriptServerClient()
-    laser_scan_publisher = LaserScanPublisher(ts_client)
-
+def lidar_publisher_process(host, port):
+    sensor_publisher = SensorPublisher(host, port)
     try:
         while True:
-            laser_scan_publisher.publish_laser_scan()
-
+            lidar_data = sensor_publisher.gen_laser_scan_msg()
+            if lidar_data:
+                sensor_publisher.send_data({"type": "lidar", "data": lidar_data})
     except KeyboardInterrupt:
         pass
+    finally:
+        sensor_publisher.socket.close()
 
-def imu_publisher_process():
-    ts_client = TypeScriptServerClient()
-    imu_publisher = ImuPublisher(ts_client)
-
+def imu_publisher_process(host, port):
+    sensor_publisher = SensorPublisher(host, port)
     try:
         while True:
-            imu_publisher.publish_imu()
-
+            imu_data = sensor_publisher.gen_imu_msg()
+            if imu_data:
+                sensor_publisher.send_data({"type": "imu", "data": imu_data})
     except KeyboardInterrupt:
         pass
+    finally:
+        sensor_publisher.socket.close()
 
 def main():
+    host, port = "localhost", 10000  # Set the appropriate host and port
     try:
-        lidar_publisher_process()
-        imu_publisher_process()
-
+        # Parallel processing will be required here for simultaneous execution
+        lidar_publisher_process(host, port)
+        imu_publisher_process(host, port)
     except KeyboardInterrupt:
         pass
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
