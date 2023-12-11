@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>athena-self-driving</name>
+  <version>0.0.0</version>
+  <description>A ROS 2 package for Athena-LattePanda project</description>
+
+  <maintainer email="guerel.mert@outlook.com">Mert Goekay Guerel</maintainer>
+  <license>Apache 2.0</license>  <!-- Or any other license you prefer -->
+
+  <!-- Dependencies -->
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>rclcpp</depend>
+  <!-- Add other dependencies here. For example, if you use standard ROS 2 messages -->
+  <depend>std_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <!-- Add any specific ROS 2 packages your project depends on -->
+
+  <build_depend>...</build_depend>  <!-- Specific build-time dependencies -->
+  <exec_depend>...</exec_depend>    <!-- Specific run-time dependencies -->
+
+  <export>
+    <!-- Other export definitions -->
+  </export>
+</package>
