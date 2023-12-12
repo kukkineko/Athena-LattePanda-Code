@@ -7,32 +7,32 @@ import signal
 import logging
 import os
 
-class TypeScriptServerClient:
+class CPPClient:
     def __init__(self):
         try:
-            # Start TypeScript server
-            self.ts_server_process = subprocess.Popen(
-                ["node", "../nodejs/typescriptServer.js"],
+            # Start CPP Client
+            self.cpp_client_process = subprocess.Popen(
+                ["./path_to_compiled_cppclient/cppclient"],  # Adjust the path to your compiled cppclient
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
                 preexec_fn=os.setsid  # Create a new process group
             )
         except Exception as e:
-            logging.error(f"Error starting TypeScript server: {e}")
+            logging.error(f"Error starting CPP Client: {e}")
             sys.exit(1)
 
-        # Wait for the server to start with a timeout
+        # Wait for the CPP client to start with a timeout
         max_retries = 10
         retry_interval = 1  # in seconds
 
         for _ in range(max_retries):
-            line = self.ts_server_process.stdout.readline().strip()
-            if line == 'TypeScript server is listening on port 3000':
+            if self.cpp_client_process.poll() is not None:
+                # Process has exited, no need to wait
                 break
             time.sleep(retry_interval)
         else:
-            logging.error("Failed to start TypeScript server within the given timeout.")
+            logging.error("Failed to start CPP Client within the given timeout.")
             sys.exit(1)
 
         # Register cleanup function
@@ -43,18 +43,19 @@ class TypeScriptServerClient:
         signal.signal(signal.SIGTERM, self.handle_exit)
 
     def send_data(self, topic, data):
-        # Send data to TypeScript server
+        # This method may be redundant if your CPP client does not accept input via stdin.
+        # Send data to CPP Client
         message = {"topic": topic, "data": data}
         message_str = json.dumps(message)
-        self.ts_server_process.stdin.write(message_str + '\n')
-        self.ts_server_process.stdin.flush()
+        self.cpp_client_process.stdin.write(message_str + '\n')
+        self.cpp_client_process.stdin.flush()
 
     def close(self):
-        # Close TypeScript server
-        if hasattr(self, 'ts_server_process') and self.ts_server_process.poll() is None:
-            os.killpg(os.getpgid(self.ts_server_process.pid), signal.SIGTERM)
-            self.ts_server_process.wait()
-            logging.info("TypeScript server terminated.")
+        # Close CPP Client
+        if hasattr(self, 'cpp_client_process') and self.cpp_client_process.poll() is None:
+            os.killpg(os.getpgid(self.cpp_client_process.pid), signal.SIGTERM)
+            self.cpp_client_process.wait()
+            logging.info("CPP Client terminated.")
 
     def handle_exit(self, signum, frame):
         # Handle termination signals
@@ -72,6 +73,6 @@ class TypeScriptServerClient:
 logging.basicConfig(level=logging.INFO)
 
 if __name__ == '__main__':
-    with TypeScriptServerClient() as ts_client:
+    with CPPClient() as cpp_client:
         # Your existing code or any additional logic can go here
-        ts_client.send_data('imu', {'some': 'data'})
+        # Example: cpp_client.send_data('imu', {'some': 'data'})
