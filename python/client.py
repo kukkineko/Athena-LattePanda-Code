@@ -17,9 +17,6 @@ class CppClientInterface:
             self.process.wait()
             print("C++ application stopped.")
 
-    def __del__(self):
-        self.stop_cpp_app()
-
 class ClientSocket:
     def __init__(self, host, port):
         self.host = host

@@ -1,14 +1,16 @@
-from client import ClientSocket  # Assuming ClientSocket is defined in client.py
+from client import CppClientInterface, ClientSocket
 from lidar import Lidar
 from IMU import IMU
 import json
 import threading
 
 class SensorPublisher:
-    def __init__(self, host, port):
+    def __init__(self, host, port, cpp_executable_path):
         self.lidar = Lidar()
         self.imu = IMU()
         self.client_socket = ClientSocket(host, port)
+        self.cpp_client = CppClientInterface(cpp_executable_path)
+        self.cpp_client.start_cpp_app()
 
     def send_data(self, data):
         try:
@@ -59,18 +61,20 @@ class SensorPublisher:
         return imu_msg
 
 
-def publish_lidar_data(sensor_publisher):
+    def close(self):
+        self.client_socket.close()
+        self.cpp_client.stop_cpp_app()
+
+
+def publish_sensor_data(sensor_publisher):
     try:
         while True:
+            # Fetch and send LIDAR data
             lidar_data = sensor_publisher.gen_laser_scan_msg()
             if lidar_data:
                 sensor_publisher.send_data({"type": "lidar", "data": lidar_data})
-    except KeyboardInterrupt:
-        pass
-
-def publish_imu_data(sensor_publisher):
-    try:
-        while True:
+            
+            # Fetch and send IMU data
             imu_data = sensor_publisher.gen_imu_msg()
             if imu_data:
                 sensor_publisher.send_data({"type": "imu", "data": imu_data})
@@ -79,16 +83,13 @@ def publish_imu_data(sensor_publisher):
 
 def main():
     host, port = "localhost", 10000
-    sensor_publisher = SensorPublisher(host, port)
+    cpp_executable_path = "/path/to/your/cppclient"
+    sensor_publisher = SensorPublisher(host, port, cpp_executable_path)
 
-    lidar_thread = threading.Thread(target=publish_lidar_data, args=(sensor_publisher,))
-    imu_thread = threading.Thread(target=publish_imu_data, args=(sensor_publisher,))
-
-    lidar_thread.start()
-    imu_thread.start()
-
-    lidar_thread.join()
-    imu_thread.join()
+    try:
+        publish_sensor_data(sensor_publisher)
+    finally:
+        sensor_publisher.close()
 
 if __name__ == "__main__":
     main()
