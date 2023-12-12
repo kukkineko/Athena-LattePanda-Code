@@ -1,22 +1,19 @@
+from client import ClientSocket  # Assuming ClientSocket is defined in client.py
 from lidar import Lidar
 from IMU import IMU
-import socket
 import json
 import threading
-
 
 class SensorPublisher:
     def __init__(self, host, port):
         self.lidar = Lidar()
         self.imu = IMU()
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server_address = (host, port)
-        self.socket.connect(self.server_address)
+        self.client_socket = ClientSocket(host, port)
 
     def send_data(self, data):
         try:
             message = json.dumps(data).encode()
-            self.socket.sendall(message)
+            self.client_socket.send_data(message)
         except Exception as e:
             print(f"Error sending data: {e}")
 
@@ -62,8 +59,7 @@ class SensorPublisher:
         return imu_msg
 
 
-def publish_lidar_data(host, port):
-    sensor_publisher = SensorPublisher(host, port)
+def publish_lidar_data(sensor_publisher):
     try:
         while True:
             lidar_data = sensor_publisher.gen_laser_scan_msg()
@@ -71,11 +67,8 @@ def publish_lidar_data(host, port):
                 sensor_publisher.send_data({"type": "lidar", "data": lidar_data})
     except KeyboardInterrupt:
         pass
-    finally:
-        sensor_publisher.socket.close()
 
-def publish_imu_data(host, port):
-    sensor_publisher = SensorPublisher(host, port)
+def publish_imu_data(sensor_publisher):
     try:
         while True:
             imu_data = sensor_publisher.gen_imu_msg()
@@ -83,13 +76,13 @@ def publish_imu_data(host, port):
                 sensor_publisher.send_data({"type": "imu", "data": imu_data})
     except KeyboardInterrupt:
         pass
-    finally:
-        sensor_publisher.socket.close()
 
 def main():
-    host, port = "localhost", 10000  # Set the appropriate host and port
-    lidar_thread = threading.Thread(target=publish_lidar_data, args=(host, port))
-    imu_thread = threading.Thread(target=publish_imu_data, args=(host, port))
+    host, port = "localhost", 10000
+    sensor_publisher = SensorPublisher(host, port)
+
+    lidar_thread = threading.Thread(target=publish_lidar_data, args=(sensor_publisher,))
+    imu_thread = threading.Thread(target=publish_imu_data, args=(sensor_publisher,))
 
     lidar_thread.start()
     imu_thread.start()
