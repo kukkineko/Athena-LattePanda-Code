@@ -2,6 +2,8 @@ from lidar import Lidar
 from IMU import IMU
 import socket
 import json
+import threading
+
 
 class SensorPublisher:
     def __init__(self, host, port):
@@ -59,7 +61,8 @@ class SensorPublisher:
         }
         return imu_msg
 
-def lidar_publisher_process(host, port):
+
+def publish_lidar_data(host, port):
     sensor_publisher = SensorPublisher(host, port)
     try:
         while True:
@@ -71,7 +74,7 @@ def lidar_publisher_process(host, port):
     finally:
         sensor_publisher.socket.close()
 
-def imu_publisher_process(host, port):
+def publish_imu_data(host, port):
     sensor_publisher = SensorPublisher(host, port)
     try:
         while True:
@@ -85,12 +88,14 @@ def imu_publisher_process(host, port):
 
 def main():
     host, port = "localhost", 10000  # Set the appropriate host and port
-    try:
-        # Parallel processing will be required here for simultaneous execution
-        lidar_publisher_process(host, port)
-        imu_publisher_process(host, port)
-    except KeyboardInterrupt:
-        pass
+    lidar_thread = threading.Thread(target=publish_lidar_data, args=(host, port))
+    imu_thread = threading.Thread(target=publish_imu_data, args=(host, port))
+
+    lidar_thread.start()
+    imu_thread.start()
+
+    lidar_thread.join()
+    imu_thread.join()
 
 if __name__ == "__main__":
     main()
