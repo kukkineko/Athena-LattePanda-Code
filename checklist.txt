@@ -1,0 +1,20 @@
+YDLidar sdk
+coral tpu driver
+ros iron?
+github
+nomachine
+system profiler and benchmark
+visual code
+qt assistant
+python 3.7
+tensorflow == ??
+
+
+--==---==---==--
+Apt libs
+
+
+--==---==---==--
+Python libaries
+
+
