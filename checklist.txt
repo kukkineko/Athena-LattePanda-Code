@@ -1,0 +1,26 @@
+YDLidar sdk
+coral tpu driver
+ros 1 noetic
+github
+nomachine
+system profiler and benchmark
+visual code
+qt assistant
+python 3.7
+tensorflow == ??
+
+
+--==---==---==--
+Apt libs
+
+
+--==---==---==--
+Python libaries
+python3-pycoral
+numpy
+pillow
+pygame
+pyserial
+--==---==---==--
+usr: athena
+pwd: merick23
