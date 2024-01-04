@@ -1,39 +1,38 @@
-import rclpy
-from rclpy.node import Node
+import rospy
 from sensor_msgs.msg import LaserScan
 from lidar import Lidar  # Import the Lidar class from your 'lidar.py' module
 
-class LaserScanPublisher(Node):
+class LaserScanPublisher:
     def __init__(self, topic='scan'):
-        super().__init__('laser_scan_publisher')
-        self.publisher = self.create_publisher(LaserScan, topic, 60)
-        self.timer = None
+        rospy.init_node('laser_scan_publisher')
+        self.publisher = rospy.Publisher(topic, LaserScan, queue_size=10)
+        self.rate = rospy.Rate(120)
         self.is_running = False
         self.lidar = Lidar()  # Initialize the Lidar instance
 
-    def start(self, interval=1.0):
+    def start(self):
         if self.is_running:
             return
 
         self.is_running = True
-        self.timer = self.create_timer(interval, self.publish_laser_scan)
+        self.publish_laser_scan()
 
     def stop(self):
-        if self.timer:
-            self.timer.cancel()
-            self.is_running = False
+        self.is_running = False
 
     def publish_laser_scan(self):
-        laser_scan_msg = self.gen_laser_scan_msg()
-        if laser_scan_msg is not None:
-            self.get_logger().info(f'Publishing LaserScan at {laser_scan_msg.header.stamp.sec}')
-            self.publisher.publish(laser_scan_msg)
+        while not rospy.is_shutdown() and self.is_running:
+            laser_scan_msg = self.gen_laser_scan_msg()
+            if laser_scan_msg is not None:
+                rospy.loginfo(f'Publishing LaserScan at {rospy.Time.now()}')
+                self.publisher.publish(laser_scan_msg)
+            self.rate.sleep()
 
     def gen_laser_scan_msg(self):
         scan = self.lidar.scan()
         if scan:
             laser_scan_msg = LaserScan()
-            laser_scan_msg.header.stamp = self.get_clock().now().to_msg()
+            laser_scan_msg.header.stamp = rospy.Time.now()
             laser_scan_msg.header.frame_id = 'scan'
             laser_scan_msg.angle_min = self.lidar.angle_min
             laser_scan_msg.angle_max = self.lidar.angle_max
@@ -51,20 +50,13 @@ class LaserScanPublisher(Node):
         else:
             return None
 
-def main(args=None):
-    rclpy.init(args=args)
+def main():
     laser_scan_publisher = LaserScanPublisher()
 
     try:
         laser_scan_publisher.start()
-        rclpy.spin(laser_scan_publisher)
-    except KeyboardInterrupt:
-        laser_scan_publisher.stop()
-    except Exception as e:
-        laser_scan_publisher.get_logger().error(str(e))
-
-    laser_scan_publisher.destroy_node()
-    rclpy.shutdown()
+    except rospy.ROSInterruptException:
+        pass
 
 if __name__ == '__main__':
     main()
