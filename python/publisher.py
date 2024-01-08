@@ -24,7 +24,8 @@ class LaserScanPublisher:
         while not rospy.is_shutdown() and self.is_running:
             laser_scan_msg = self.gen_laser_scan_msg()
             if laser_scan_msg is not None:
-                rospy.loginfo(f'Publishing LaserScan at {rospy.Time.now()}')
+                rospy.loginfo('Publishing LaserScan at {}'.format(rospy.Time.now()))
+
                 self.publisher.publish(laser_scan_msg)
             self.rate.sleep()
 
