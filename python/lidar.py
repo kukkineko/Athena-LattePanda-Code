@@ -71,3 +71,12 @@ class Lidar:
         # Turn off the device.
         self.laser.turnOff()
         self.laser.disconnecting()
+
+if __name__ == "__main__":
+    #Start the Lidar instance, print the scan, and turn off the Lidar instance
+    lidar = Lidar()
+    lidar.scan()
+    print(lidar.ranges_list)
+    print(lidar.intensities_list)
+    lidar.turnOff()
+    
