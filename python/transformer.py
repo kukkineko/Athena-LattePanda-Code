@@ -16,9 +16,9 @@ class Transformer:
         self.imu_frame_id = 'imu_frame'  # Update with your actual IMU frame
 
         # Subscribe to chassis, scan, and IMU topics
-        rospy.Subscriber('chassis_topic', PoseStamped, self.chassis_callback)
-        rospy.Subscriber('scan_topic', LaserScan, self.scan_callback)
-        rospy.Subscriber('imu_topic', Imu, self.imu_callback)
+        rospy.Subscriber('chassis', PoseStamped, self.chassis_callback)
+        rospy.Subscriber('scan', LaserScan, self.scan_callback)
+        rospy.Subscriber('imu', Imu, self.imu_callback)
 
         rospy.spin()
 
