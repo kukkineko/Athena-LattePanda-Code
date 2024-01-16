@@ -1,60 +1,67 @@
+#!/usr/bin/env python
+
 import rospy
 import tf2_ros
-from geometry_msgs.msg import PoseStamped
-from sensor_msgs.msg import LaserScan, Imu
+import geometry_msgs.msg
 
 class Transformer:
     def __init__(self):
+        # Initialize ROS Node
         rospy.init_node('transformer_node')
 
-        # Initialize TF2 broadcaster
-        self.tf_broadcaster = tf2_ros.TransformBroadcaster()
+        # Initialize tf2 buffer and listener
+        self.tf_buffer = tf2_ros.Buffer()
+        self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
 
-        # Set your frame IDs
-        self.chassis_frame_id = 'chassis'
-        self.scan_frame_id = 'base_scan'
-        self.imu_frame_id = 'imu_frame'  # Update with your actual IMU frame
+        # Define topic names and frame IDs
+        self.source_topic = "scan"
+        self.output_topic = "base_scan"
+        self.source_frame = "primesense1_depth_frame"
+        self.target_frame = "base_link"
 
-        # Subscribe to chassis, scan, and IMU topics
-        rospy.Subscriber('chassis', PoseStamped, self.chassis_callback)
-        rospy.Subscriber('scan', LaserScan, self.scan_callback)
-        rospy.Subscriber('imu', Imu, self.imu_callback)
-
-        rospy.spin()
-
-    def chassis_callback(self, pose_msg):
-        rospy.loginfo("Received chassis data")
-        transform = self.create_transform(pose_msg.pose, self.chassis_frame_id)
-        self.broadcast_transform(transform)
+        # Create ROS subscribers and publishers
+        self.scan_subscriber = rospy.Subscriber(self.source_topic, LaserScan, self.scan_callback)
+        self.base_scan_publisher = rospy.Publisher(self.output_topic, LaserScan, queue_size=10)
 
     def scan_callback(self, scan_msg):
-        rospy.loginfo("Received scan data")
-        transform = self.create_transform(scan_msg.header.frame_id, self.scan_frame_id)
-        self.broadcast_transform(transform)
+        try:
+            # Transform the scan message to the target frame
+            transformed_scan = self.transform_scan(scan_msg)
+            
+            # Publish the transformed scan
+            self.base_scan_publisher.publish(transformed_scan)
 
-    def imu_callback(self, imu_msg):
-        rospy.loginfo("Received imu data")
-        transform = self.create_transform(imu_msg.header.frame_id, self.imu_frame_id)
-        self.broadcast_transform(transform)
+        except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException) as e:
+            rospy.logwarn("TF Transformation Error: {}".format(e))
 
-    def create_transform(self, source_frame, target_frame):
-        rospy.loginfo("Creating transform from %s to %s", source_frame, target_frame)
-        transform = tf2_ros.TransformStamped()
-        transform.header.stamp = rospy.Time.now()
-        transform.header.frame_id = source_frame
-        transform.child_frame_id = target_frame
-        transform.transform.translation.x = 0.0  # Adjust as needed
-        transform.transform.translation.y = 0.0
-        transform.transform.translation.z = 0.0
-        transform.transform.rotation.x = 0.0  # Adjust as needed
-        transform.transform.rotation.y = 0.0
-        transform.transform.rotation.z = 0.0
-        transform.transform.rotation.w = 1.0
-        return transform
+    def transform_scan(self, scan_msg):
+        # Create a new LaserScan message
+        transformed_scan = LaserScan()
+        transformed_scan.header = scan_msg.header
 
-    def broadcast_transform(self, transform):
-        rospy.loginfo("Broadcasting transform")
-        self.tf_broadcaster.sendTransform(transform)
+        # Transform scan frame to the target frame
+        transform = self.tf_buffer.lookup_transform(self.target_frame, self.source_frame, rospy.Time())
+        transformed_scan.header.frame_id = self.target_frame
+
+        # Transform the scan points
+        for point in scan_msg.ranges:
+            transformed_point = self.transform_point(point, transform)
+            transformed_scan.ranges.append(transformed_point)
+
+        return transformed_scan
+
+    def transform_point(self, point, transform):
+        # Transform a single point from the source to target frame
+        transformed_point = point  # Placeholder for the actual transformation logic
+        # You need to implement the transformation logic based on your robot's setup
+        # Use the transform object to apply the transformation
+        
+        return transformed_point
 
 if __name__ == '__main__':
-    transformer = Transformer()
+    try:
+        transformer = Transformer()
+        rospy.spin()
+
+    except rospy.ROSInterruptException:
+        pass
