@@ -23,22 +23,22 @@ class Transformer:
         rospy.spin()
 
     def chassis_callback(self, pose_msg):
-        # Function to transform chassis pose and broadcast
+        rospy.loginfo("Received chassis data")
         transform = self.create_transform(pose_msg.pose, self.chassis_frame_id)
         self.broadcast_transform(transform)
 
     def scan_callback(self, scan_msg):
-        # Function to transform laser scan and broadcast
+        rospy.loginfo("Received scan data")
         transform = self.create_transform(scan_msg.header.frame_id, self.scan_frame_id)
         self.broadcast_transform(transform)
 
     def imu_callback(self, imu_msg):
-        # Function to transform IMU data and broadcast
+        rospy.loginfo("Received imu data")
         transform = self.create_transform(imu_msg.header.frame_id, self.imu_frame_id)
         self.broadcast_transform(transform)
 
     def create_transform(self, source_frame, target_frame):
-        # Create a transform from source frame to target frame
+        rospy.loginfo("Creating transform from %s to %s", source_frame, target_frame)
         transform = tf2_ros.TransformStamped()
         transform.header.stamp = rospy.Time.now()
         transform.header.frame_id = source_frame
@@ -53,7 +53,7 @@ class Transformer:
         return transform
 
     def broadcast_transform(self, transform):
-        # Broadcast the transform
+        rospy.loginfo("Broadcasting transform")
         self.tf_broadcaster.sendTransform(transform)
 
 if __name__ == '__main__':
